@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'api.category',
     'api.product',
     'api.order',
+    'api.cart',
     'corsheaders',
     'django_filters',
     'rest_framework_simplejwt',
