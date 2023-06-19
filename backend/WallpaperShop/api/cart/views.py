@@ -1,48 +1,60 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import CartItems, Cart
-from api.product.models import Product
-from .serializers import CartItemsSerializer
 from rest_framework.permissions import IsAuthenticated
+from .models import Cart, CartItem
+from .serializers import CartSerializer, CartItemSerializer
 
 
-class CartItemsView(APIView):
+class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        cart_items = CartItems.objects.filter(cart__user=request.user)
-        serializer = CartItemsSerializer(cart_items, many=True)
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(user=request.user)
+        serializer = CartSerializer(cart)
         return Response(serializer.data)
 
+
+class CartItemView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        serializer = CartItemsSerializer(data=request.data)
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        serializer = CartItemSerializer(data=request.data)
+
         if serializer.is_valid():
-            product_id = serializer.validated_data['product']
-            quantity = serializer.validated_data['quantity']
-            try:
-                product = Product.objects.get(id=product_id)
-                if product.stock >= quantity:
-                    cart = Cart.objects.get(user=request.user)
-                    serializer.save(cart=cart)
-                    product.stock -= quantity
-                    product.save()
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response({'error': 'Not enough stock available'}, status=status.HTTP_400_BAD_REQUEST)
-            except Product.DoesNotExist:
-                return Response({'error': 'Product does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            item = serializer.save(cart=cart)
+            product = item.product
+
+            if product.stock == 0:
+                item.delete()
+                return Response({"error": "Product is out of stock."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if item.quantity > product.stock:
+                item.delete()
+                return Response({"error": "Cannot add more items than available in stock."}, status=status.HTTP_400_BAD_REQUEST)
+
+            remaining_stock = product.stock - item.quantity
+
+            if remaining_stock < 0:
+                item.delete()
+                return Response({"error": "Not enough stock available."}, status=status.HTTP_400_BAD_REQUEST)
+
+            product.stock = remaining_stock
+            product.save()
+
+            serializer = CartItemSerializer(item)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        cart_item = CartItems.objects.get(pk=pk)
+    def delete(self, request, item_id):
+        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        product = cart_item.product
+        product.stock += cart_item.quantity
+        product.save()
         cart_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def put(self, request, pk):
-        cart_item = CartItems.objects.get(pk=pk)
-        serializer = CartItemsSerializer(cart_item, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
