@@ -13,7 +13,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'cart', 'product',
                   'product_id', 'quantity', 'sub_total']
         extra_kwargs = {
-            'cart': {'required': False}  # Make the cart field optional
+            'cart': {'required': False}  
         }
 
 

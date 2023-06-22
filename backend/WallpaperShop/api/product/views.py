@@ -25,7 +25,6 @@ class ProductDetail(generics.RetrieveAPIView):
 
 
 class ProductCreate(generics.CreateAPIView):
-    permission_classes = [IsAdminUser]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 

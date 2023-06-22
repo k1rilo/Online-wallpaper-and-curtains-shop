@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'accounts',
-    'home',
     'api',
     'api.category',
     'api.product',
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True 
@@ -62,7 +62,7 @@ ROOT_URLCONF = 'WallpaperShop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,11 +88,11 @@ DATABASES = {
     }
 }
 
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-]
+#PASSWORD_HASHERS = [
+#    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+#    'django.contrib.auth.hashers.Argon2PasswordHasher',
+#    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+#]
 
 
 # Password validation
@@ -130,7 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
 MEDIA_URL = 'media/'
+
 STATICFILES_DIRS = [BASE_DIR / 'static', ]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -153,10 +155,12 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:8000',
-    'http://localhost:3000',
-]
+#CORS_ALLOWED_ORIGINS = [
+#    'http://127.0.0.1:8000',
+#    'http://localhost:3000',
+#]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),

@@ -16,7 +16,6 @@ class CategoryDetail(generics.RetrieveAPIView):
 
 
 class CategoryCreate(generics.CreateAPIView):
-    permission_classes = [IsAdminUser]
     queryset = Category.objects.all()
     serializer_class = CategoryListSerializer
 
